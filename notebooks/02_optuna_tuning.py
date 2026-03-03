@@ -23,7 +23,7 @@ os.makedirs('reports', exist_ok=True)
 # 1. Load Data & Whitelist
 
 print("Loading PhreshPhish...")
-df_train = pd.read_csv('data/df_train.csv')
+df_train = pd.read_csv('data/df_train.csv.gz', compression="gzip")
 df_test  = pd.read_csv('data/df_test.csv')
 df_train['binary_label'] = (df_train['label'] == 'benign').astype(int)
 df_test['binary_label'] = (df_test['label'] == 'benign').astype(int)
