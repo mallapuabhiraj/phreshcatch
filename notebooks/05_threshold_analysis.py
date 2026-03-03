@@ -1,0 +1,158 @@
+# %% [markdown]
+# # PhreshCatch — 05: Decision Threshold Analysis
+# Sweeps thresholds 0.20–0.81 to find the optimal operating point.
+# Default sklearn threshold is 0.50 — security context justifies moving it.
+#
+# **Requires:** `models/best_pipeline_tuned.pkl` from notebook 02
+#
+# **Output:** `reports/figures/threshold_analysis.png`
+#
+# **Next:** `06_stress_test.ipynb`
+
+# %%
+# ── Imports ───────────────────────────────────────────────────────────────────
+import os, pickle
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+from datasets import load_dataset
+from sklearn.metrics import f1_score, confusion_matrix
+
+import sys
+sys.path.append('..')
+
+os.makedirs('reports/figures', exist_ok=True)
+
+# %% [markdown]
+# ## 1. Load Data & Model
+
+# %%
+print("Loading PhreshPhish test split...")
+test_ds  = load_dataset('phreshphish/phreshphish', split='test',
+                        columns=['url', 'label'])
+df_test  = test_ds.to_pandas()
+df_test['binary_label'] = (df_test['label'] == 'benign').astype(int)
+
+y_test    = df_test['binary_label'].values
+test_urls = df_test['url'].values
+
+best_pipeline = pickle.load(open('models/best_pipeline_tuned.pkl', 'rb'))
+print(f"Model: {type(best_pipeline.named_steps['model']).__name__}")
+
+# %% [markdown]
+# ## 2. Get Phishing Probabilities
+
+# %%
+proba     = best_pipeline.predict_proba(test_urls)
+classes   = best_pipeline.named_steps['model'].classes_
+phish_col = list(classes).index(0)
+phish_prob = proba[:, phish_col]
+
+print(f"Phishing prob range: {phish_prob.min():.4f} – {phish_prob.max():.4f}")
+print(f"Mean phishing prob : {phish_prob.mean():.4f}")
+
+# %% [markdown]
+# ## 3. Threshold Sweep
+
+# %%
+thresholds = np.arange(0.20, 0.82, 0.01)
+results    = []
+
+for t in thresholds:
+    preds = (phish_prob >= t).astype(int)
+    preds = 1 - preds  # back to label space (0=phishing, 1=benign)
+    tn, fp, fn, tp = confusion_matrix(y_test, preds).ravel()
+    recall    = tp / (tp + fn) if (tp + fn) > 0 else 0
+    f1        = f1_score(y_test, preds, pos_label=0)
+    results.append({
+        'threshold': round(t, 2),
+        'FN': int(fn), 'FP': int(fp),
+        'recall': round(recall, 4),
+        'f1':     round(f1, 4)
+    })
+
+results_df = pd.DataFrame(results)
+
+# %% [markdown]
+# ## 4. Plot
+
+# %%
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
+
+ax1.plot(results_df['threshold'], results_df['FN'],
+         color='red', label='FN (missed phishing)', linewidth=2)
+ax1.plot(results_df['threshold'], results_df['FP'],
+         color='blue', label='FP (false alarms)', linewidth=2)
+ax1.axvline(0.50, color='gray', linestyle='--', label='Default (0.50)')
+ax1.axvline(0.57, color='orange', linestyle='--', label='Chosen (0.57)')
+ax1.set_xlabel('Decision Threshold')
+ax1.set_ylabel('Count')
+ax1.set_title('FN vs FP Tradeoff')
+ax1.legend()
+ax1.grid(alpha=0.3)
+
+ax2.plot(results_df['threshold'], results_df['f1'],
+         color='green', linewidth=2)
+ax2.axvline(0.50, color='gray', linestyle='--', label='Default (0.50)')
+ax2.axvline(0.57, color='orange', linestyle='--', label='Chosen (0.57)')
+ax2.set_xlabel('Decision Threshold')
+ax2.set_ylabel('F1 Score')
+ax2.set_title('F1 vs Threshold')
+ax2.legend()
+ax2.grid(alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('reports/figures/threshold_analysis.png',
+            dpi=150, bbox_inches='tight')
+plt.show()
+print("Saved → reports/figures/threshold_analysis.png ✅")
+
+# %% [markdown]
+# ## 5. Print Full Table
+
+# %%
+print("=== THRESHOLD ANALYSIS ===\n")
+print(f"{'Threshold':>10} {'FN':>7} {'FP':>7} {'Recall':>8} {'F1':>8}")
+print("─" * 45)
+for _, row in results_df.iterrows():
+    markers = []
+    if abs(row['threshold'] - 0.50) < 0.005:
+        markers.append("← default")
+    if abs(row['threshold'] - 0.57) < 0.005:
+        markers.append("← chosen")
+    marker = "  " + " | ".join(markers) if markers else ""
+    print(f"{row['threshold']:>10.2f} {row['FN']:>7,} {row['FP']:>7,} "
+          f"{row['recall']:>8.4f} {row['f1']:>8.4f}{marker}")
+
+# %% [markdown]
+# ## 6. Chosen Threshold — Justification
+
+# %%
+DECISION_THRESHOLD = 0.57
+
+default_row = results_df[results_df['threshold'] == 0.50].iloc[0]
+chosen_row  = results_df[results_df['threshold'] == DECISION_THRESHOLD].iloc[0]
+
+fn_reduction = default_row['FN'] - chosen_row['FN']
+fp_increase  = chosen_row['FP'] - default_row['FP']
+ratio        = fp_increase / fn_reduction if fn_reduction > 0 else float('inf')
+pct_fn_reduction = fn_reduction / default_row['FN'] * 100
+
+print(f"""
+╔══════════════════════════════════════════════════════════════╗
+║  DECISION THRESHOLD: {DECISION_THRESHOLD}                              ║
+╚══════════════════════════════════════════════════════════════╝
+
+  Default (0.50) : FN={default_row['FN']:,}  FP={default_row['FP']:,}  Recall={default_row['recall']:.4f}
+  Chosen  ({DECISION_THRESHOLD}) : FN={chosen_row['FN']:,}  FP={chosen_row['FP']:,}  Recall={chosen_row['recall']:.4f}
+
+  FN reduction : -{fn_reduction:,} ({pct_fn_reduction:.1f}% fewer missed phishing)
+  FP increase  : +{fp_increase:,} ({ratio:.1f}:1 FP-per-FN tradeoff)
+
+  Justification: Security context. A missed phishing URL results in
+  credential theft — unrecoverable harm. A false alarm results in a
+  warning screen the user can bypass — recoverable inconvenience.
+  Standard practice in security tooling: FN cost > FP cost.
+""")
+
+print("Next: run 06_stress_test.ipynb")
