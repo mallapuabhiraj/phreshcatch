@@ -38,7 +38,7 @@ classes   = best_pipeline.named_steps['model'].classes_
 phish_col = list(classes).index(0)
 phish_prob = proba[:, phish_col]
 
-print(f"Phishing prob range: {phish_prob.min():.4f} â€“ {phish_prob.max():.4f}")
+print(f"Phishing prob range: {phish_prob.min():.4f}  {phish_prob.max():.4f}")
 print(f"Mean phishing prob : {phish_prob.mean():.4f}")
 
 # 3. Threshold Sweep
@@ -97,13 +97,13 @@ print("Saved at reports/figures/threshold_analysis.png")
 
 print("=== THRESHOLD ANALYSIS ===\n")
 print(f"{'Threshold':>10} {'FN':>7} {'FP':>7} {'Recall':>8} {'F1':>8}")
-print("â”€" * 45)
+print("─" * 45)
 for _, row in results_df.iterrows():
     markers = []
     if abs(row['threshold'] - 0.50) < 0.005:
-        markers.append("â† default")
+        markers.append("default")
     if abs(row['threshold'] - 0.57) < 0.005:
-        markers.append("â† chosen")
+        markers.append("chosen")
     marker = "  " + " | ".join(markers) if markers else ""
     print(f"{row['threshold']:>10.2f} {row['FN']:>7,} {row['FP']:>7,} "
           f"{row['recall']:>8.4f} {row['f1']:>8.4f}{marker}")
