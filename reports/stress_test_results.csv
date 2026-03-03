@@ -1,0 +1,58 @@
+category,url,true,notes,pred,phish_prob,layer,correct,result_type
+1_combosquatting,https://paypal-secure-login.xyz/verify,phishing,"brand in subdomain, suspicious TLD",phishing,0.9827,ml_model,True,TP
+1_combosquatting,https://secure-paypal.account-verify.com/signin,phishing,"brand + auth keywords, hyphenated",phishing,0.6117,ml_model,True,TP
+1_combosquatting,https://appleid-verify.support/account/confirm,phishing,"apple brand, verify keyword",phishing,0.6552,ml_model,True,TP
+1_combosquatting,https://amazon-account-update.net/billing,phishing,"amazon brand, billing keyword",phishing,0.7742,ml_model,True,TP
+1_combosquatting,https://microsoft-365-login.com/auth,phishing,"microsoft brand, auth keyword",phishing,0.8446,ml_model,True,TP
+1_combosquatting,https://login-facebook.id/checkpoint,phishing,"facebook brand, login keyword",phishing,0.9807,ml_model,True,TP
+1_combosquatting,https://netflix-billing-update.com/payment,phishing,netflix + payment,phishing,0.907,ml_model,True,TP
+1_combosquatting,https://chase-bank-secure.com/online/signin,phishing,"bank brand, secure keyword",benign,0.5691,ml_model,False,FN
+1_combosquatting,https://paypal.com/signin,benign,real paypal — should be benign,benign,0.0,whitelist,True,TN
+1_combosquatting,https://apple.com/appleid,benign,real apple — should be benign,benign,0.0,whitelist,True,TN
+1_combosquatting,https://amazon.com/account/billing,benign,real amazon — should be benign,benign,0.0,whitelist,True,TN
+2_homoglyph,https://g00gle.com/account/login,phishing,0→o substitution,benign,0.1437,ml_model,False,FN
+2_homoglyph,https://paypa1.com/signin,phishing,1→l substitution,benign,0.5215,ml_model,False,FN
+2_homoglyph,https://arnazon.com/verify,phishing,rn→m lookalike,phishing,0.7059,ml_model,True,TP
+2_homoglyph,https://rnicrosof t.com/login,phishing,rn→m in microsoft,benign,0.2246,ml_model,False,FN
+2_homoglyph,https://faceb00k.com/login,phishing,00→oo substitution,phishing,0.8345,ml_model,True,TP
+2_homoglyph,https://netfl1x.com/account,phishing,1→i substitution,benign,0.4982,ml_model,False,FN
+2_homoglyph,https://1inkedin.com/login,phishing,1→L substitution,phishing,0.6776,ml_model,True,TP
+2_homoglyph,https://app1e.com/appleid/verify,phishing,1→l in apple,benign,0.1731,ml_model,False,FN
+2_homoglyph,https://web3.google.com,benign,legitimate digit in subdomain,benign,0.0,whitelist,True,TN
+2_homoglyph,https://m365.microsoft.com,benign,microsoft 365 legit subdomain,benign,0.0,whitelist,True,TN
+3_keyword_stacking,https://secure-account-verify.com/login/confirm,phishing,4 keywords: secure+account+verify+login,phishing,0.8227,ml_model,True,TP
+3_keyword_stacking,https://update-billing-payment.net/invoice,phishing,4 keywords: update+billing+payment+invoice,phishing,0.7457,ml_model,True,TP
+3_keyword_stacking,https://account-suspended-unlock.com/restore,phishing,4 keywords: account+suspended+unlock+restore,phishing,0.9671,ml_model,True,TP
+3_keyword_stacking,https://security-alert-signin.xyz/urgent,phishing,4 keywords: security+alert+signin+urgent,phishing,0.9976,ml_model,True,TP
+3_keyword_stacking,https://verify-identity-banking.com/auth,phishing,4 keywords: verify+identity+banking+auth,phishing,0.9119,ml_model,True,TP
+3_keyword_stacking,https://docusign-review-document.net/sign,phishing,document lure with docusign,phishing,0.8046,ml_model,True,TP
+3_keyword_stacking,https://onedrive-shared-document.com/view,phishing,onedrive document lure,phishing,0.9528,ml_model,True,TP
+3_keyword_stacking,https://invoice-payment-confirm.xyz/checkout,phishing,financial lure keywords,phishing,0.9926,ml_model,True,TP
+3_keyword_stacking,https://security.google.com/settings,benign,security in legit google domain,benign,0.0,whitelist,True,TN
+3_keyword_stacking,https://account.microsoft.com/billing,benign,account+billing in legit microsoft,benign,0.0,whitelist,True,TN
+4_punycode,https://xn--pypal-4ve.com/signin,phishing,pаypal with Cyrillic а,phishing,0.907,ml_model,True,TP
+4_punycode,https://xn--googl-fsa.com/account,phishing,gооgle with Cyrillic о,phishing,0.6578,ml_model,True,TP
+4_punycode,https://xn--80ak6aa92e.com,phishing,apple lookalike in Cyrillic,phishing,0.9277,ml_model,True,TP
+4_punycode,https://xn--amzon-bsa.com/verify,phishing,amazon lookalike,phishing,0.8513,ml_model,True,TP
+4_punycode,https://xn--micosoft-0hd.com/login,phishing,microsoft lookalike,phishing,0.9012,ml_model,True,TP
+4_punycode,https://xn--e1afmapc.com,benign,legitimate non-Latin domain,phishing,0.961,ml_model,False,FP
+5_clean_modern_phishing,https://cloudsync-pro.com/login,phishing,clean SaaS-looking domain,phishing,0.7233,ml_model,True,TP
+5_clean_modern_phishing,https://docviewer.net/shared/invoice,phishing,"document lure, clean structure",benign,0.0485,ml_model,False,FN
+5_clean_modern_phishing,https://portal-access.io/signin,phishing,"clean, modern-looking",benign,0.4107,ml_model,False,FN
+5_clean_modern_phishing,https://myaccount-portal.com/verify,phishing,"account portal, clean",phishing,0.8137,ml_model,True,TP
+5_clean_modern_phishing,https://securedrive.co/files/shared,phishing,"storage lure, clean",benign,0.1913,ml_model,False,FN
+5_clean_modern_phishing,https://teamspace.app/invite/abc123,phishing,collaboration lure,benign,0.0463,ml_model,False,FN
+5_clean_modern_phishing,https://quickbooks-invoice.com/pay,phishing,financial SaaS lure,phishing,0.8697,ml_model,True,TP
+5_clean_modern_phishing,https://signin.helpdesk-support.com,phishing,support lure,phishing,0.7921,ml_model,True,TP
+5_clean_modern_phishing,https://app.notion.so/login,benign,real notion app,benign,0.0,whitelist,True,TN
+5_clean_modern_phishing,https://workspace.google.com/dashboard,benign,real google workspace,benign,0.0,whitelist,True,TN
+5_clean_modern_phishing,https://login.microsoftonline.com,benign,real microsoft online,benign,0.0,whitelist,True,TN
+6_regression_known_phishing,https://jiu-jitsuinbridport.blogspot.pt/?m=1,phishing,multiple ? — from SHAP example,phishing,0.9966,ml_model,True,TP
+6_regression_known_phishing,https://ucion.zaolir.cfd/pageamazon,phishing,rare .cfd TLD — from SHAP example,phishing,0.9642,ml_model,True,TP
+6_regression_known_phishing,http://coolfocus.info/google.php,phishing,http + suspicious path,phishing,0.9511,ml_model,True,TP
+6_regression_known_phishing,http://192.168.1.1/admin/login,phishing,IP address domain,phishing,0.9961,ml_model,True,TP
+6_regression_known_phishing,https://bit.ly/3xK9mP2,phishing,URL shortener,benign,0.0,whitelist,False,FN
+6_regression_known_phishing,https://verify-account.tk/login?user=victim,phishing,free TLD + auth keywords + params,phishing,0.9996,ml_model,True,TP
+6_regression_known_phishing,https://my.lafarmbureau.com/insurance/home,benign,from SHAP benign example,benign,0.0261,ml_model,True,TN
+6_regression_known_phishing,https://google.com,benign,whitelist catch,benign,0.0,whitelist,True,TN
+6_regression_known_phishing,https://github.com/mallapuabhiraj/phreshcatch,benign,your own repo,benign,0.0,whitelist,True,TN
