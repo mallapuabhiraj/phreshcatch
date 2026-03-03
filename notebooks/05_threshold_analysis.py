@@ -1,16 +1,3 @@
-# %% [markdown]
-# # PhreshCatch — 05: Decision Threshold Analysis
-# Sweeps thresholds 0.20–0.81 to find the optimal operating point.
-# Default sklearn threshold is 0.50 — security context justifies moving it.
-#
-# **Requires:** `models/best_pipeline_tuned.pkl` from notebook 02
-#
-# **Output:** `reports/figures/threshold_analysis.png`
-#
-# **Next:** `06_stress_test.ipynb`
-
-# %%
-# ── Imports ───────────────────────────────────────────────────────────────────
 import os, pickle
 import pandas as pd
 import numpy as np
@@ -23,14 +10,10 @@ sys.path.append('..')
 
 os.makedirs('reports/figures', exist_ok=True)
 
-# %% [markdown]
 # ## 1. Load Data & Model
 
-# %%
 print("Loading PhreshPhish test split...")
-test_ds  = load_dataset('phreshphish/phreshphish', split='test',
-                        columns=['url', 'label'])
-df_test  = test_ds.to_pandas()
+df_test  = pd.read_csv('data/df_test.csv')
 df_test['binary_label'] = (df_test['label'] == 'benign').astype(int)
 
 y_test    = df_test['binary_label'].values
@@ -39,10 +22,8 @@ test_urls = df_test['url'].values
 best_pipeline = pickle.load(open('models/best_pipeline_tuned.pkl', 'rb'))
 print(f"Model: {type(best_pipeline.named_steps['model']).__name__}")
 
-# %% [markdown]
-# ## 2. Get Phishing Probabilities
+# 2. Get Phishing Probabilities
 
-# %%
 proba     = best_pipeline.predict_proba(test_urls)
 classes   = best_pipeline.named_steps['model'].classes_
 phish_col = list(classes).index(0)
@@ -51,10 +32,8 @@ phish_prob = proba[:, phish_col]
 print(f"Phishing prob range: {phish_prob.min():.4f} – {phish_prob.max():.4f}")
 print(f"Mean phishing prob : {phish_prob.mean():.4f}")
 
-# %% [markdown]
-# ## 3. Threshold Sweep
+# 3. Threshold Sweep
 
-# %%
 thresholds = np.arange(0.20, 0.82, 0.01)
 results    = []
 
@@ -73,10 +52,8 @@ for t in thresholds:
 
 results_df = pd.DataFrame(results)
 
-# %% [markdown]
-# ## 4. Plot
+# 4. Plot
 
-# %%
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
 ax1.plot(results_df['threshold'], results_df['FN'],
@@ -107,10 +84,8 @@ plt.savefig('reports/figures/threshold_analysis.png',
 plt.show()
 print("Saved → reports/figures/threshold_analysis.png ✅")
 
-# %% [markdown]
-# ## 5. Print Full Table
+# 5. Print Full Table
 
-# %%
 print("=== THRESHOLD ANALYSIS ===\n")
 print(f"{'Threshold':>10} {'FN':>7} {'FP':>7} {'Recall':>8} {'F1':>8}")
 print("─" * 45)
@@ -124,10 +99,8 @@ for _, row in results_df.iterrows():
     print(f"{row['threshold']:>10.2f} {row['FN']:>7,} {row['FP']:>7,} "
           f"{row['recall']:>8.4f} {row['f1']:>8.4f}{marker}")
 
-# %% [markdown]
 # ## 6. Chosen Threshold — Justification
 
-# %%
 DECISION_THRESHOLD = 0.57
 
 default_row = results_df[results_df['threshold'] == 0.50].iloc[0]
@@ -154,5 +127,3 @@ print(f"""
   warning screen the user can bypass — recoverable inconvenience.
   Standard practice in security tooling: FN cost > FP cost.
 """)
-
-print("Next: run 06_stress_test.ipynb")
