@@ -55,7 +55,11 @@ class URLFeatureExtractor(BaseEstimator, TransformerMixin):
         'recover', 'unlock', 'restore', 'suspend', 'alert',
         'validate', 'credential', 'password', 'reactivate'
     }
-    
+    HOMOGLYPH_MAP = {
+    '0': 'o', '1': 'l', '3': 'e',
+    '4': 'a', '5': 's', '6': 'g',
+    '7': 't', '8': 'b', 'rn': 'm','vv': 'w'
+    }
     def __init__(self, trusted_domains=None):
         self.trusted_domains = trusted_domains
 
@@ -173,6 +177,16 @@ class URLFeatureExtractor(BaseEstimator, TransformerMixin):
         f['HasPhishingKeywordInPath'] = int(
             any(kw in parsed.path.lower()
                 for kw in self.__class__.PHISHING_PATH_KEYWORDS)
+        )
+        domain_name = domain.split('.')[0].lower()
+        normalized  = domain_name
+        for digit, letter in self.__class__.HOMOGLYPH_MAP.items():
+            normalized = normalized.replace(digit, letter)
+
+        f['HasHomoglyph'] = int(
+            normalized != domain_name and
+            any(brand in normalized for brand in self.__class__.KNOWN_BRANDS) and
+            not any(brand in domain_name for brand in self.__class__.KNOWN_BRANDS)
         )
 
         # Brand in subdomain — catches paypal.evil.com, apple.phishing.xyz
