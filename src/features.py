@@ -230,4 +230,4 @@ def predict_with_override(pipeline, urls, trusted_domains,
             prob           = unknown_probs[j]
             phish_probs[i] = round(float(prob), 4)
             preds[i]       = 0 if prob >= threshold else 1
-    return preds, phish_probs
+    return preds, phish_probs, layer
