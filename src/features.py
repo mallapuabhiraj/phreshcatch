@@ -136,19 +136,23 @@ def predict_with_override(pipeline, urls, trusted_domains,
     phish_col  = classes.index(0)
 
     n           = len(urls)
-    preds       = np.ones(n, dtype=int)    # default: benign
+    preds       = np.ones(n, dtype=int)
     phish_probs = np.zeros(n, dtype=float)
+    layer       = ['whitelist'] * n
     unknown_idx = []
 
     for i, url in enumerate(urls):
         root = extractor._get_root_domain(url)
         if root in url_shorteners:
-            unknown_idx.append(i)          # bypass whitelist
+            unknown_idx.append(i)
+            layer[i] = 'ml_shortener_bypass'
         elif root in trusted_domains:
-            preds[i]       = 1             # benign
+            preds[i]       = 1
             phish_probs[i] = 0.0
+            layer[i]       = 'whitelist'
         else:
             unknown_idx.append(i)
+            layer[i] = 'ml_model'
 
     if unknown_idx:
         unknown_urls  = [urls[i] for i in unknown_idx]
@@ -158,6 +162,5 @@ def predict_with_override(pipeline, urls, trusted_domains,
         for j, i in enumerate(unknown_idx):
             prob           = unknown_probs[j]
             phish_probs[i] = round(float(prob), 4)
-            preds[i]       = 0 if prob >= threshold else 1  # 0=phishing, 1=benign
-
+            preds[i]       = 0 if prob >= threshold else 1
     return preds, phish_probs
